@@ -1,0 +1,3 @@
+cmd/sso/bin/
+cmd/migrator/bin/
+app_configs/
