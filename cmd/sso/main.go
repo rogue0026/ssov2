@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/rogue0026/ssov2/internal/models"
+	"github.com/rogue0026/ssov2/internal/service"
 	"github.com/rogue0026/ssov2/internal/ssoconfig"
 	"github.com/rogue0026/ssov2/internal/storage/postgres"
 )
@@ -18,10 +18,15 @@ const (
 )
 
 func main() {
+	// loading configuration
 	ssoConfigPath := flag.String("c", "", "path to sso config file")
 	flag.Parse()
 	appConfig := ssoconfig.MustLoad(*ssoConfigPath)
+
+	// setup logger
 	appLogger := setupLogger(appConfig.RunningEnv)
+
+	// initializing connection to database
 	s, err := postgres.New(context.Background(), appConfig.DSN)
 	if err != nil {
 		appLogger.Error(err.Error())
@@ -29,17 +34,14 @@ func main() {
 		appLogger.Info("connected ok")
 	}
 
-	id, err := s.CreateUser(context.Background(), models.User{
-		Login:        "test_login",
-		PasswordHash: []byte("asdfasdf"),
-		Email:        "test_email@example.com",
-	})
+	// initializing service layer
+	svc := service.New(s, s)
+	userId, err := svc.RegisterNewUser(context.Background(), "test_login", "test_password", "test@example.com")
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
-		fmt.Printf("id is %d\n", id)
+		fmt.Printf("user successfully created. user id is %d\n", userId)
 	}
-
 }
 
 func setupLogger(env string) *slog.Logger {
@@ -68,7 +70,7 @@ func setupLogger(env string) *slog.Logger {
 	Адрес сервера
 	Строка подключения к базе данных
 	Время жизни токена
-2. Написать слой для взаимодействия с базой данных PostgreSQL:
+2. Написать слой для взаимодействия с базой данных PostgreSQL: (done)
 	Создание (регистрация) нового пользователя в системе
 	Получение данных о пользователе по Login && Email
 	Удаление пользователя из системы
