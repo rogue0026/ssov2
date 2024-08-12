@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log/slog"
 	"os"
 
 	"github.com/rogue0026/ssov2/internal/ssoconfig"
+	"github.com/rogue0026/ssov2/internal/storage/postgres"
 )
 
 const (
@@ -16,12 +18,14 @@ const (
 func main() {
 	ssoConfigPath := flag.String("c", "", "path to sso config file")
 	flag.Parse()
-
-	appLogger := setupLogger(ENV_DEV)
-
 	appConfig := ssoconfig.MustLoad(*ssoConfigPath)
-	appLogger.Info("log message", "config_path", *ssoConfigPath)
-	appLogger.Info("log message", "config data", appConfig.String())
+	appLogger := setupLogger(appConfig.RunningEnv)
+	s, err := postgres.New(context.Background(), appConfig.DSN)
+	if err != nil {
+		appLogger.Error(err.Error())
+	} else {
+		appLogger.Info("connected ok")
+	}
 
 }
 
