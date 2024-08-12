@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 
+	"github.com/rogue0026/ssov2/internal/models"
 	"github.com/rogue0026/ssov2/internal/ssoconfig"
 	"github.com/rogue0026/ssov2/internal/storage/postgres"
 )
@@ -25,6 +27,17 @@ func main() {
 		appLogger.Error(err.Error())
 	} else {
 		appLogger.Info("connected ok")
+	}
+
+	id, err := s.CreateUser(context.Background(), models.User{
+		Login:        "test_login",
+		PasswordHash: []byte("asdfasdf"),
+		Email:        "test_email@example.com",
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Printf("id is %d\n", id)
 	}
 
 }
